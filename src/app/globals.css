@@ -1,26 +1,424 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+img {
+    max-width: 100%;
+    display: block;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+button {
+    font-family: inherit;
+    cursor: pointer;
 }
 
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+    height: 100%;
+    font-family: var(--font-roboto), sans-serif;
+    background-color: #1a1a1a;
+    color: #333;
+}
+
+.desktop-wrapper {
+    width: 100%;
+    min-height: 100vh;
+    background-color: #1a1a1a;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.mobile-container {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    background: linear-gradient(to right, #876545, #a68363);
+    overflow-y: auto;
+    position: relative;
+    padding-bottom: 50px;
+}
+
+.cover-photo {
+    width: 100%;
+    height: 160px;
+    background-image: url('/photos/cover/cover1.jpg');
+    background-size: cover;
+    background-position: center;
+}
+
+.header-grid {
+    text-align: center;
+    color: white;
+    background: linear-gradient(to right, #876545, #a68363);
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    border-radius: 40px 40px 0 0;
+    transform: translateY(-25px);
+}
+
+.grid-logo {
+    grid-area: 1 / 1 / 4 / 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+}
+
+.grid-logo img {
+    height: 120px;
+    aspect-ratio: 1 / 1;
+}
+
+.grid-name {
+    grid-area: 1 / 5 / 2 / 13;
+    display: flex;
+    align-items: center;
+    margin-top: 7px;
+}
+
+.grid-name h1 {
+    font-family: var(--font-roboto-slab);
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 24px;
+    line-height: 1.1;
+    text-align: left;
+    text-shadow: 0 2px 2px rgba(0, 0, 0, 0.3);
+    padding: 5px;
+    padding-top: 10px;
+}
+
+.grid-details {
+    grid-area: 2 / 5 / 4 / 9;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-left: 6px;
+    font-size: 11px;
+    font-family: var(--font-roboto);
+    color: #eee;
+}
+
+
+
+.socialMedia {
+    display: flex;
+    gap: 18px;
+    padding-bottom: 5px;
+}
+
+.socialMedia img {
+    aspect-ratio: 1 / 1;
+    height: 30px;
+}
+
+.contact-info {
+    padding-left: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-merriweather);
+    font-size: 10px;
+}
+
+.contact-info img {
+    width: 9px;
+    aspect-ratio: 1 / 1;
+}
+
+.grid-map {
+    grid-area: 2 / 9 / 4 / 13;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-right: 10px;
+    padding-bottom: 3px;
+}
+
+.map-link {
+    display: block;
+    width: 100%;
+    height: 86px;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.map-link:active {
+    transform: scale(0.98);
+}
+
+.map-link img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.nav-types {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-left: 16px;
+}
+
+.type-btn {
+    border-radius: 20px;
+    border: 1px solid white;
+    padding: 3px 8px;
+    background: #503B27;
+    text-transform: uppercase;
+    font-weight: 800;
+    font-size: 16px;
+    color: white;
+    transition: 0.3s;
+    font-family: var(--font-roboto-slab);
+}
+
+.type-btn.active {
+    background: white;
+    color: #503B27;
+    transform: scale(1.05);
+}
+
+.categories-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    padding: 0 15px;
+}
+
+.category-card {
+    height: 120px;
+    border-radius: 30px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 6px 4px rgba(0, 0, 0, 0.57);
+}
+
+.category-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.overlay-text {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.overlay-text h2,
+.sticky-category-header h2 {
+    color: white;
+    font-family: var(--font-roboto-slab), serif;
+    text-transform: uppercase;
+    text-align: center;
+    font-size: 32px;
+    font-weight: 500;
+    -webkit-text-stroke: 1px #a8a8a853;
+    text-shadow: 0 2px 9px rgb(7, 7, 7);
+}
+
+.products-list {
+    padding: 0 15px;
+}
+
+.sticky-category-header {
+    position: sticky;
+    top: 10px;
+    z-index: 100;
+    background: linear-gradient(to right, rgba(74, 64, 54, 0.95), rgba(78, 68, 58, 0.95));
+    padding: 10px;
+    border-radius: 10px;
+    border: 2px solid #463b2f;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.sticky-category-header h2 {
+    font-size: 22px;
+    -webkit-text-stroke: 0px #9d8282;
+}
+
+.back-btn {
+    background: #8c735a;
+    border: none;
+    color: white;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.back-btn img {
+    aspect-ratio: 1/1;
+    width: 50%;
+}
+
+.product-card {
+    background: #fdfbf7;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.product-img-wrapper {
+    height: 230px;
+    width: 100%;
+}
+
+.product-img-wrapper img {
+    width: 94%;
+    height: 94%;
+    margin-left: 3%;
+    transform: translateY(5%);
+    object-fit: cover;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0);
+}
+
+.product-info {
+    padding: 15px;
+    padding-bottom: 12px;
+    position: relative;
+}
+
+.product-title-price {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.product-title-price h3 {
+    color: #2d241e;
+    text-transform: uppercase;
+    font-size: 16px;
+    font-family: var(--font-roboto);
+    font-weight: 800;
+}
+
+.price {
+    color: #8c735a;
+    font-weight: bold;
+    font-size: 20px;
+    margin-right: 3px;
+    transform: translateY(-3px);
+    font-family: var(--font-roboto);
+}
+
+.ingredients {
+    font-size: 13px;
+    color: #999;
+    font-style: italic;
+    border-top: 1px solid #f1ecec86;
+    margin-bottom: 0;
+}
+
+.weight {
+    font-size: 13px;
+    color: #999;
+    display: block;
+    text-align: right;
+    font-style: italic;
+    margin-top: -15px;
+    margin-right: 3px;
+}
+
+.allergens {
+    font-size: 8px;
+    color: #e23421;
+    margin-top: 5px;
+    font-weight: normal;
+    font-style: italic;
+    line-height: 1.1;
+    opacity: 0.8;
+}
+
+.nutritional-info {
+    font-size: 8px;
+    color: #777;
+    padding-top: 10px;
+    margin-top: 0px;
+}
+
+.nutritional-info strong {
+    color: #5f5f5f;
+    text-transform: uppercase;
+}
+
+.expand-arrow {
+    color: #a9a9a9;
+    font-size: 10px;
+    font-weight: bold;
+    position: absolute;
+    bottom: 5px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    line-height: 12px;
+}
+
+.empty-message {
+    text-align: center;
+    color: #ccc;
+    margin-top: 40px;
+}
+
+.loading-screen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(to right, #876545, #a68363);
+    overflow: hidden;
+}
+
+.logo-loader {
+    position: relative;
+    width: 150px;
+    height: 150px;
+}
+
+.logo-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    z-index: 2;
+    animation: pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.7);
+        opacity: 0.4;
+    }
+
+    100% {
+        transform: scale(1.3);
+        opacity: 1;
+    }
 }
