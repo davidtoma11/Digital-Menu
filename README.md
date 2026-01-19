@@ -2,7 +2,7 @@
 
 A premium, cloud-connected digital menu solution engineered for high performance, ease of use, and strict compliance with food safety regulations. Built with the latest web technologies: **Next.js** and **TiDB (Serverless MySQL)**.
 
-## 🟢 Live Demo
+## 🟢 Live
 **Experience the live application here:** 🔗 **[[https://la-zavat-menu.vercel.app](https://la-zavat-menu.vercel.app)]**
 
 ---
@@ -60,3 +60,7 @@ This project implements a unique **Hybrid Security Architecture** to separate pu
 - **Styling:** CSS Modules / Custom Responsive Design
 - **State Management:** React Hooks
 - **Deployment:** Vercel Global CDN
+
+---
+
+Food pictures will be uploaded soon
