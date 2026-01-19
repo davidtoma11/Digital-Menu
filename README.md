@@ -11,7 +11,7 @@ A premium, cloud-connected digital menu solution engineered for high performance
 
 | Mobile View (QR Scan) | Product Details |
 |:--------------------------:|:---------------:|
-| ![Menu List Screenshot](public/photos/cover/menu(1).jpg) | ![Nutrition Screenshot](public/photos/cover/menu(2).jpg) |
+| ![Menu List Screenshot](public/photos/cover/menu_1.png) | ![Nutrition Screenshot](public/photos/cover/menu_2.png) |
 
 ---
 
