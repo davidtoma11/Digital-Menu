@@ -1,0 +1,155 @@
+/* ==================================================================
+   Import poze — stil „swipe”, un card pe rând
+   ================================================================== */
+
+.za-imp-center { display: grid; place-items: center; align-content: center; gap: 14px; min-height: 100vh; color: var(--za-text-2); }
+
+.za-swipe {
+  min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden;
+  background:
+    radial-gradient(800px 500px at 50% -10%, rgba(192, 138, 88, .16), transparent 65%),
+    var(--za-bg);
+}
+
+/* ---------- top ---------- */
+
+.za-swipe-top {
+  display: flex; align-items: center; gap: 18px; width: 100%; max-width: 760px; margin: 0 auto; padding: 18px 20px 6px;
+}
+.za-swipe-back { color: var(--za-text-3); text-decoration: none; font-size: 13px; white-space: nowrap; }
+.za-swipe-back:hover { color: var(--za-text); }
+.za-swipe-progress { flex: 1; display: flex; flex-direction: column; gap: 7px; }
+.za-swipe-progress-text { display: flex; justify-content: space-between; font-size: 13px; }
+.za-swipe-progress-text span { color: var(--za-text-3); font-variant-numeric: tabular-nums; }
+.za-swipe-bar { height: 5px; border-radius: 99px; background: var(--za-surface-3); overflow: hidden; }
+.za-swipe-bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--za-accent), var(--za-accent-strong)); transition: width .4s var(--za-ease); }
+
+/* ---------- card ---------- */
+
+.za-swipe-stage { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 14px 20px 28px; }
+.za-swipe-deck { position: relative; width: 100%; max-width: 440px; }
+
+.za-swipe-card {
+  position: relative; z-index: 2; overflow: hidden; touch-action: pan-y; user-select: none; cursor: grab;
+  background: var(--za-surface); border: 1px solid var(--za-border-strong); border-radius: 26px;
+  box-shadow: 0 30px 70px -25px rgba(0, 0, 0, .85), 0 1px 0 rgba(255,255,255,.04) inset;
+  will-change: transform; animation: za-card-in .35s var(--za-ease);
+}
+.za-swipe-card:active { cursor: grabbing; }
+.za-swipe-card.is-behind {
+  position: absolute; inset: 0; z-index: 1; animation: none; cursor: default;
+  transform: scale(.94) translateY(18px); opacity: .55; filter: blur(1px);
+}
+.za-swipe-card.is-behind img { width: 100%; aspect-ratio: 4 / 3.4; object-fit: cover; display: block; }
+
+.za-swipe-photo { position: relative; aspect-ratio: 4 / 3.4; background: var(--za-surface-3); }
+.za-swipe-photo img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+.za-swipe-photo-cap {
+  position: absolute; inset: auto 0 0 0; display: flex; flex-direction: column; gap: 2px; padding: 40px 18px 14px;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, .78));
+}
+.za-swipe-photo-cap span { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: rgba(255,255,255,.65); }
+.za-swipe-photo-cap b { font-size: 15px; color: #fff; font-weight: 600; }
+
+.za-stamp {
+  position: absolute; top: 26px; padding: 6px 14px; border: 3px solid; border-radius: 10px;
+  font-size: 26px; font-weight: 800; letter-spacing: .06em; pointer-events: none; transition: opacity .1s;
+  background: rgba(0, 0, 0, .25); backdrop-filter: blur(2px);
+}
+.za-stamp-yes { left: 22px; color: #6be09c; border-color: #6be09c; transform: rotate(-14deg); }
+.za-stamp-no { right: 22px; color: #ff6b6b; border-color: #ff6b6b; transform: rotate(14deg); }
+
+.za-swipe-info { padding: 16px 20px 18px; }
+.za-swipe-match-label { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; }
+.za-swipe-arrow { font-size: 12.5px; color: var(--za-text-3); }
+.za-swipe-info h2 { margin: 0; font-size: 22px; line-height: 1.2; letter-spacing: -0.02em; }
+.za-swipe-info h2.is-empty { color: var(--za-text-3); }
+.za-swipe-sub { margin: 4px 0 0; color: var(--za-text-2); font-size: 13.5px; }
+.za-swipe-change {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; padding: 0; font-size: 13px; font-weight: 600;
+  color: var(--za-accent-strong) !important;
+}
+.za-swipe-change:hover { text-decoration: underline; }
+
+.za-imp-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 99px; }
+.s-sigur { color: var(--za-ok); background: var(--za-ok-soft); }
+.s-probabil { color: var(--za-warn); background: var(--za-warn-soft); }
+.s-fara { color: var(--za-danger); background: var(--za-danger-soft); }
+.s-manual { color: var(--za-accent-strong); background: var(--za-accent-soft); }
+.za-imp-warn { margin: 8px 0 0; font-size: 12.5px; color: var(--za-warn); }
+
+/* ---------- butoane rotunde ---------- */
+
+.za-swipe-actions { display: flex; align-items: center; justify-content: center; gap: 22px; margin-top: 26px; }
+.za-round {
+  position: relative; display: grid; place-items: center; border-radius: 50%;
+  background: var(--za-surface) !important; border: 1px solid var(--za-border-strong) !important;
+  box-shadow: 0 12px 30px -10px rgba(0,0,0,.7); transition: transform .18s var(--za-ease), box-shadow .18s, background .18s;
+}
+.za-round:hover { transform: translateY(-3px) scale(1.06); }
+.za-round:active { transform: scale(.94); }
+.za-round span {
+  position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+  font-size: 11.5px; font-weight: 600; color: var(--za-text-3); white-space: nowrap;
+}
+.za-round-no, .za-round-yes { width: 68px; height: 68px; font-size: 28px; font-weight: 700; }
+.za-round-edit { width: 50px; height: 50px; font-size: 19px; color: var(--za-text-2) !important; }
+.za-round-no { color: #ff6b6b !important; }
+.za-round-no:hover { box-shadow: 0 14px 34px -10px rgba(255, 107, 107, .5); }
+.za-round-yes { color: #6be09c !important; }
+.za-round-yes:hover { box-shadow: 0 14px 34px -10px rgba(107, 224, 156, .5); }
+
+.za-swipe-hint { margin: 38px 0 0; font-size: 12.5px; color: var(--za-text-3); text-align: center; }
+
+/* ---------- picker ---------- */
+
+.za-pick {
+  width: 100%; max-width: 520px; max-height: min(640px, 86vh); display: flex; flex-direction: column; overflow: hidden;
+  background: var(--za-surface-2); border: 1px solid var(--za-border-strong); border-radius: 20px; box-shadow: var(--za-shadow);
+  animation: za-pop .22s var(--za-ease);
+}
+.za-pick-search { display: flex; align-items: center; gap: 10px; padding: 14px 14px 14px 18px; border-bottom: 1px solid var(--za-border); }
+.za-pick-search > span { font-size: 18px; color: var(--za-text-3); }
+.za-pick-search input { flex: 1; background: none; border: 0; outline: none; font-size: 16px; color: var(--za-text); }
+.za-pick-list { overflow-y: auto; padding: 6px; }
+.za-pick-row { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; width: 100%; padding: 10px 12px; border-radius: 10px; text-align: left; }
+.za-pick-row:hover, .za-pick-row:focus-visible { background: var(--za-surface-3); }
+.za-pick-row.is-current { background: var(--za-accent-soft); }
+.za-pick-row.is-none .za-pick-name { color: var(--za-text-3); }
+.za-pick-name { font-weight: 600; }
+.za-pick-cat { font-size: 12px; color: var(--za-text-3); }
+.za-pick-cat em { font-style: normal; color: var(--za-warn); }
+.za-pick-empty { padding: 20px; text-align: center; color: var(--za-text-3); }
+
+/* ---------- final ---------- */
+
+.za-swipe-done { width: 100%; max-width: 860px; margin: 0 auto; padding: 30px 20px 60px; }
+.za-swipe-done-head { text-align: center; margin-bottom: 26px; }
+.za-swipe-trophy { font-size: 46px; margin-bottom: 4px; }
+.za-swipe-done-head h1 { margin: 0 0 6px; font-size: 26px; letter-spacing: -0.02em; }
+.za-swipe-done-head p { margin: 0 0 20px; color: var(--za-text-2); }
+.c-ok { color: var(--za-ok); } .c-done { color: var(--za-accent-strong); } .c-skip { color: var(--za-text-3); }
+.za-swipe-done-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+
+.za-imp-log { margin-bottom: 18px; padding: 12px 14px; border-radius: 12px; background: var(--za-surface); border: 1px solid var(--za-border); max-height: 180px; overflow: auto; font-size: 13px; }
+.za-imp-log .ok { color: var(--za-ok); }
+.za-imp-log .err { color: var(--za-danger); }
+
+.za-swipe-summary { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; }
+.za-sum-item { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 14px; background: var(--za-surface); border: 1px solid var(--za-border); }
+.za-sum-item img { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; flex: none; }
+.za-sum-item > div { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.za-sum-item b { font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.za-sum-item span { font-size: 12px; color: var(--za-text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.za-sum-item.is-done { border-color: rgba(192, 138, 88, .35); }
+.za-sum-item.is-done span { color: var(--za-accent-strong); }
+
+@keyframes za-card-in { from { opacity: 0; transform: scale(.96) translateY(10px); } }
+
+@media (max-width: 520px) {
+  .za-swipe-top { gap: 12px; padding: 14px 14px 4px; }
+  .za-swipe-stage { padding: 10px 14px 24px; }
+  .za-swipe-info h2 { font-size: 19px; }
+  .za-swipe-hint { display: none; }
+}
+.za-root .za-pick-search input:focus-visible { outline: none; }

@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# poze temporare pentru importul din site-ul vechi
+/public/_import/
