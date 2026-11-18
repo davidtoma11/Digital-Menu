@@ -1,5 +1,6 @@
 import { createConnection } from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 
 export async function POST(request) {
   let db;
@@ -21,6 +22,8 @@ export async function POST(request) {
 
     await db.execute(query, values);
     await db.end();
+
+    revalidatePath('/'); // meniul public se reîmprospătează imediat
 
     return NextResponse.json({ success: true });
 

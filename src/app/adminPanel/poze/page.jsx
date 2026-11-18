@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import '../admin.css';
 import './poze.css';
 import { AUTH_DISABLED } from '@/lib/adminAuth';
+import { kindOf } from '@/lib/menuFormat';
+import { productText, categoryName } from '@/lib/i18n';
 
 /* ------------------------------------------------------------------ */
 /* Constante și utilitare                                              */
@@ -549,7 +551,7 @@ export default function StudioPoze() {
   const hasReal = currentFile && !placeholders.has(currentFile);
   const currentSrc = hasReal ? `/photos/produse/${encodeURIComponent(currentFile)}?v=${bust[product.id] || 0}` : null;
   const unit = category && category.tip === 'Mancare' ? 'g' : 'ml';
-  const neighbours = product ? products.filter(p => p.categorie_id === product.categorie_id && p.id !== product.id).slice(0, 1) : [];
+  const neighbours = product ? products.filter(p => p.categorie_id === product.categorie_id && p.id !== product.id).slice(0, 2) : [];
   const zoomPct = Math.round(edits.zoom * 100);
   const edited = JSON.stringify(edits) !== JSON.stringify(DEFAULT_EDITS);
 
@@ -717,48 +719,64 @@ export default function StudioPoze() {
           <div className="pz-phone">
             <div className="pz-phone-notch" />
             <div className="pz-phone-screen">
-              <div className="products-list">
-                <div className="sticky-bar pz-phone-bar">
-                  <span className="back-btn" aria-hidden="true">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  </span>
-                  <h2>{category ? clean(category.nume) : 'Categorie'}</h2>
-                  <span className="header-spacer" />
+              {/* lista din categorie (în spate) */}
+              <div className="pz-mock-list">
+                <div className="section-banner pz-mock-banner">
+                  {category?.imagine_url && <img src={`/photos/categorii/${clean(category.imagine_url)}`} alt="" />}
+                  <h2>{category ? categoryName(category, 'ro') : 'Categorie'}</h2>
                 </div>
-
-                <div className="product-card">
-                  <div className="product-img-wrapper">
-                    {img && <PhotoCanvas img={img} edits={edits} className="pz-phone-canvas" />}
-                    {product?.gramaj > 0 && <span className="weight-chip">{product.gramaj} {unit}</span>}
-                  </div>
-                  <div className="product-info">
-                    <div className="product-title-price">
-                      <h3>{product ? product.nume : 'NUMELE PRODUSULUI'}</h3>
-                      <span className="price">{product ? Math.floor(product.pret) : '00'} <small>lei</small></span>
-                    </div>
-                    {product?.ingrediente && <p className="ingredients">{product.ingrediente}</p>}
-                  </div>
-                </div>
-
-                {neighbours.map(n => {
-                  const f = clean(n.imagine_url);
-                  const real = f && !placeholders.has(f);
-                  return (
-                    <div key={n.id} className={`product-card pz-ghost ${real ? '' : 'no-photo'}`}>
-                      {real && (
-                        <div className="product-img-wrapper">
-                          <img src={`/photos/produse/${encodeURIComponent(f)}?v=${bust[n.id] || 0}`} alt="" />
-                        </div>
-                      )}
-                      <div className="product-info">
-                        <div className="product-title-price">
-                          <h3>{n.nume}</h3>
-                          <span className="price">{Math.floor(n.pret)} <small>lei</small></span>
+                <ul className="dishes">
+                  <li>
+                    <div className="dish pz-mock-current">
+                      <div className="dish-text">
+                        <h3 className="dish-name">{product ? productText(product, 'ro', kindOf(category)).name : 'Numele produsului'}</h3>
+                        <div className="dish-meta">
+                          <span className="dish-price">{product ? Math.floor(product.pret) : '00'} <small>lei</small></span>
+                          {product?.gramaj > 0 && <span className="dish-weight">{product.gramaj} {unit}</span>}
                         </div>
                       </div>
+                      <div className="dish-thumb pz-mock-thumb">
+                        {img && <PhotoCanvas img={img} edits={edits} className="pz-mock-thumb-canvas" />}
+                      </div>
                     </div>
-                  );
-                })}
+                  </li>
+                  {neighbours.map(n => {
+                    const f = clean(n.imagine_url);
+                    const real = f && !placeholders.has(f);
+                    return (
+                      <li key={n.id}>
+                        <div className="dish">
+                          <div className="dish-text">
+                            <h3 className="dish-name">{productText(n, 'ro', kindOf(category)).name}</h3>
+                            <div className="dish-meta"><span className="dish-price">{Math.floor(n.pret)} <small>lei</small></span></div>
+                          </div>
+                          {real && (
+                            <div className="dish-thumb">
+                              <img src={`/photos/produse/${encodeURIComponent(f)}?v=${bust[n.id] || 0}`} alt="" />
+                            </div>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+
+              {/* fișa produsului (cum o vede clientul după ce atinge produsul) */}
+              <div className="pz-mock-sheet">
+                <span className="sheet-handle" />
+                <div className="sheet-photo">
+                  {img && <PhotoCanvas img={img} edits={edits} className="pz-phone-canvas" />}
+                </div>
+                <div className="sheet-body">
+                  <p className="eyebrow">{category ? categoryName(category, 'ro') : 'Categorie'}</p>
+                  <h2 className="sheet-title">{product ? productText(product, 'ro', kindOf(category)).name : 'Numele produsului'}</h2>
+                  <div className="sheet-meta">
+                    <span className="sheet-price">{product ? Math.floor(product.pret) : '00'} <small>lei</small></span>
+                    {product?.gramaj > 0 && <span className="sheet-weight">{product.gramaj} {unit}</span>}
+                  </div>
+                  {product && productText(product, 'ro', kindOf(category)).desc && <p className="sheet-desc">{productText(product, 'ro', kindOf(category)).desc}</p>}
+                </div>
               </div>
             </div>
           </div>

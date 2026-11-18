@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -34,6 +35,15 @@ export async function POST(request) {
         }
       } catch { /* lista lipsește: se regenerează la următorul dev/build */ }
     }
+
+    // Variantele rapide (WebP + previzualizare estompată) pentru meniu.
+    try {
+      const { updateImage } = await import('@/lib/imageVariants.mjs');
+      await updateImage(folder, fileName);
+    } catch (e) {
+      console.warn('Variante poză nereușite:', e.message);
+    }
+    revalidatePath('/');
 
     return NextResponse.json({ success: true, message: "Imagine actualizata!" });
 
