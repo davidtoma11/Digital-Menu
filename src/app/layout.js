@@ -28,13 +28,21 @@ const merriweather = Merriweather({
 });
 
 export const metadata = {
-  title: "Taverna La Zavat - Digital Menu",
-  description: "Interactive digital menu",
+  title: "Taverna La Zavat - Meniu",
+  description: "Meniul digital Taverna La Zavat",
+};
+
+// Telefon: bara browserului în culoarea meniului, conținut până sub notch.
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#94704f',
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="ro">
       <body className={`${roboto.variable} ${robotoSlab.variable} ${merriweather.variable}`}>
         {children}
       </body>

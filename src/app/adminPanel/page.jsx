@@ -914,6 +914,9 @@ export default function AdminPanel() {
           )}
         </div>
 
+        <a className="za-btn za-btn-primary za-btn-sm za-nav-link" href="/adminPanel/poze">
+          <Icon name="image" size={15} /> Studio poze
+        </a>
         <a className="za-btn za-btn-ghost za-btn-sm za-nav-link" href="/adminPanel/import">
           <Icon name="image" size={15} /> Import poze site vechi
         </a>

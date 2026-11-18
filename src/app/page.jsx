@@ -1,11 +1,18 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import PLACEHOLDERS from '@/lib/placeholders.json';
 
 const TYPES = [
   { key: 'mancare', label: 'Mâncare' },
   { key: 'bar', label: 'Bar' },
   { key: 'vinuri', label: 'Vinuri' },
 ];
+
+const PLACEHOLDER_SET = new Set(PLACEHOLDERS);
+const realPhoto = (url) => {
+  const file = (url || '').trim();
+  return file && !PLACEHOLDER_SET.has(file) ? file : null;
+};
 
 // "Energie: 120kcal, Grasimi: 3g, ..." -> [['Energie','120kcal'], ...]
 function parseNutrition(str) {
@@ -24,27 +31,46 @@ function Chevron({ open }) {
   );
 }
 
+// Imagine care apare lin când s-a încărcat (fără „pop”) și dispare curat dacă lipsește.
+function FadeImg({ src, alt = '', eager = false, className = '' }) {
+  const [state, setState] = useState('loading');
+  const ref = useCallback((node) => {
+    if (node && node.complete && node.naturalWidth) setState('loaded');
+  }, []);
+  if (state === 'error') return null;
+  return (
+    <img
+      ref={ref}
+      src={src}
+      alt={alt}
+      loading={eager ? 'eager' : 'lazy'}
+      decoding="async"
+      className={`fade-img ${state === 'loaded' ? 'is-loaded' : ''} ${className}`}
+      onLoad={() => setState('loaded')}
+      onError={() => setState('error')}
+    />
+  );
+}
+
 export default function DigitalMenu() {
   const [data, setData] = useState({ categories: [], products: [] });
   const [loading, setLoading] = useState(true);
   const [expandedProductId, setExpandedProductId] = useState(null);
   const [activeType, setActiveType] = useState('mancare');
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const listScroll = useRef(0);
+  const chipsRef = useRef(null);
 
   useEffect(() => {
     const fetchData = fetch('/api/meniu').then((res) => res.json());
-    const minLoadingTime = new Promise(resolve => setTimeout(resolve, 700));
+    const minLoadingTime = new Promise(resolve => setTimeout(resolve, 350));
 
     Promise.all([fetchData, minLoadingTime])
       .then(([serverData]) => {
         if (!serverData.error) {
           const sortedCategories = (serverData.categorii || []).sort((a, b) => (a.ordine || 0) - (b.ordine || 0));
           const sortedProducts = (serverData.produse || []).sort((a, b) => (a.ordine || 0) - (b.ordine || 0));
-
-          setData({
-            categories: sortedCategories,
-            products: sortedProducts
-          });
+          setData({ categories: sortedCategories, products: sortedProducts });
         }
         setLoading(false);
       })
@@ -57,29 +83,40 @@ export default function DigitalMenu() {
   useEffect(() => {
     let timer;
     if (expandedProductId) {
-      timer = setTimeout(() => {
-        setExpandedProductId(null);
-      }, 20000);
+      timer = setTimeout(() => setExpandedProductId(null), 20000);
     }
-
     return () => clearTimeout(timer);
   }, [expandedProductId]);
+
+  // Butonul „înapoi” al telefonului închide categoria în loc să părăsească meniul.
+  useEffect(() => {
+    const onPop = () => {
+      setSelectedCategory(null);
+      setExpandedProductId(null);
+      requestAnimationFrame(() => window.scrollTo({ top: listScroll.current }));
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
+  // Ține categoria activă vizibilă în bara de categorii.
+  useEffect(() => {
+    const active = chipsRef.current?.querySelector('.chip.active');
+    active?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+  }, [selectedCategory]);
 
   if (loading) {
     return (
       <div className="loading-screen">
         <div className="logo-loader">
-          <img src="photos/header/logo.png" alt="Loading..." className="logo-image" />
+          <img src="photos/header/logo.png" alt="Se încarcă meniul" className="logo-image" />
         </div>
       </div>
     );
   }
 
-  const filteredCategories = data.categories.filter(cat => {
-    const dbType = cat.tip ? cat.tip.toLowerCase().trim() : '';
-    return dbType === activeType;
-  });
-
+  const typeOf = (cat) => (cat.tip ? cat.tip.toLowerCase().trim() : '');
+  const filteredCategories = data.categories.filter(cat => typeOf(cat) === activeType);
   const canExpand = activeType === 'mancare';
 
   const toggleProduct = (id) => {
@@ -88,20 +125,35 @@ export default function DigitalMenu() {
   };
 
   const openCategory = (cat) => {
+    if (!selectedCategory) {
+      listScroll.current = window.scrollY;
+      window.history.pushState({ category: cat.id }, '');
+    } else {
+      window.history.replaceState({ category: cat.id }, '');
+    }
     setSelectedCategory(cat);
+    setExpandedProductId(null);
     window.scrollTo({ top: 0 });
   };
 
   const closeCategory = () => {
-    setSelectedCategory(null);
-    setExpandedProductId(null);
+    if (window.history.state?.category) {
+      window.history.back(); // declanșează popstate -> închide categoria
+    } else {
+      setSelectedCategory(null);
+      setExpandedProductId(null);
+    }
   };
 
   const filteredProducts = selectedCategory
     ? data.products.filter(p => p.categorie_id === selectedCategory.id)
     : [];
 
-  const countFor = (catId) => data.products.filter(p => p.categorie_id === catId).length;
+  const siblingCategories = selectedCategory
+    ? data.categories.filter(c => typeOf(c) === typeOf(selectedCategory))
+    : [];
+
+  const unitFor = (cat) => (cat.tip === 'Mancare' ? 'g' : 'ml');
 
   return (
     <div className="desktop-wrapper">
@@ -116,14 +168,14 @@ export default function DigitalMenu() {
           </div>
           <div className="grid-details">
             <div className='socialMedia'>
-              <a href="https://www.facebook.com/taverna.lazavat" target="_blank" rel="noopener noreferrer">
-                <img src="photos/header/facebook.png" alt="Facebook" className="social-icon" />
+              <a href="https://www.facebook.com/taverna.lazavat" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                <img src="photos/header/facebook.png" alt="" className="social-icon" />
               </a>
-              <a href="https://www.instagram.com/la_zavat/" target="_blank" rel="noopener noreferrer">
-                <img src="photos/header/instagram.png" alt="Instagram" className="social-icon" />
+              <a href="https://www.instagram.com/la_zavat/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                <img src="photos/header/instagram.png" alt="" className="social-icon" />
               </a>
-              <a href="https://www.tiktok.com/@tavernalazavat" target="_blank" rel="noopener noreferrer">
-                <img src="photos/header/tiktok.png" alt="TikTok" className="social-icon" />
+              <a href="https://www.tiktok.com/@tavernalazavat" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+                <img src="photos/header/tiktok.png" alt="" className="social-icon" />
               </a>
             </div>
             <div className="contact-info">
@@ -145,8 +197,9 @@ export default function DigitalMenu() {
               target="_blank"
               rel="noopener noreferrer"
               className="map-link"
+              aria-label="Deschide locația în Google Maps"
             >
-              <img src="photos/header/maps.png" alt="Locatie Taverna La Zavat" />
+              <img src="photos/header/maps.png" alt="" />
             </a>
           </div>
         </header>
@@ -160,6 +213,7 @@ export default function DigitalMenu() {
                   key={type.key}
                   onClick={() => setActiveType(type.key)}
                   className={activeType === type.key ? 'type-btn active' : 'type-btn'}
+                  aria-pressed={activeType === type.key}
                 >
                   {type.label}
                 </button>
@@ -170,25 +224,21 @@ export default function DigitalMenu() {
 
         <div className="content-zone">
           {!selectedCategory ? (
-            <div className="categories-grid" key={activeType}>
+            <div className="categories-grid view-enter" key={activeType}>
               {filteredCategories.map((cat, i) => (
                 <button
                   key={cat.id}
                   className="category-card"
-                  style={{ '--d': `${i * 45}ms` }}
+                  style={{ '--d': `${Math.min(i, 6) * 50}ms` }}
                   onClick={() => openCategory(cat)}
                 >
-                  <img
-                    src={`photos/categorii/${(cat.imagine_url || '').trim()}`}
-                    alt=""
-                    loading={i > 3 ? 'lazy' : 'eager'}
-                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                  />
+                  <FadeImg src={`photos/categorii/${(cat.imagine_url || '').trim()}`} eager={i < 4} />
                   <div className="overlay-text">
                     <h2>{cat.nume.trim()}</h2>
-                    <span className="category-count">{countFor(cat.id)} produse</span>
                   </div>
-                  <span className="category-go" aria-hidden="true">›</span>
+                  <span className="category-go" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  </span>
                 </button>
               ))}
               {filteredCategories.length === 0 && (
@@ -198,92 +248,105 @@ export default function DigitalMenu() {
           ) : (
             <div className="products-list">
               <div className="sticky-category-header">
-                <button className="back-btn" onClick={closeCategory} aria-label="Înapoi">
-                  <img src="photos/header/backBtn.webp" alt="" />
-                </button>
-                <h2>{selectedCategory.nume.trim()}</h2>
-                <span className="header-spacer" />
+                <div className="sticky-bar">
+                  <button className="back-btn" onClick={closeCategory} aria-label="Înapoi la categorii">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  </button>
+                  <h2>{selectedCategory.nume.trim()}</h2>
+                  <span className="header-spacer" />
+                </div>
+                {siblingCategories.length > 1 && (
+                  <div className="chips" ref={chipsRef}>
+                    {siblingCategories.map((c) => (
+                      <button
+                        key={c.id}
+                        className={`chip ${c.id === selectedCategory.id ? 'active' : ''}`}
+                        onClick={() => c.id !== selectedCategory.id && openCategory(c)}
+                      >
+                        {c.nume.trim()}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {filteredProducts.map((product, i) => {
-                const isExpanded = expandedProductId === product.id;
-                const nutrition = parseNutrition(product.declaratie_nutritionala);
+              <div className="view-enter" key={selectedCategory.id}>
+                {filteredProducts.map((product, i) => {
+                  const isExpanded = expandedProductId === product.id;
+                  const nutrition = parseNutrition(product.declaratie_nutritionala);
+                  const photo = realPhoto(product.imagine_url);
+                  const weight = product.gramaj > 0 ? `${product.gramaj} ${unitFor(selectedCategory)}` : null;
 
-                return (
-                  <div
-                    key={product.id}
-                    className={`product-card ${isExpanded ? 'expanded' : ''} ${canExpand ? 'expandable' : ''}`}
-                    style={{ '--d': `${Math.min(i, 8) * 40}ms` }}
-                    onClick={() => toggleProduct(product.id)}
-                  >
-                    {product.imagine_url && (
-                      <div className="product-img-wrapper">
-                        <img
-                          src={`photos/produse/${product.imagine_url.trim()}`}
-                          alt={product.nume}
-                          loading={i > 1 ? 'lazy' : 'eager'}
-                        />
-                        {product.gramaj > 0 && (
-                          <span className="weight-chip">
-                            {product.gramaj} {selectedCategory.tip === 'Mancare' ? 'g' : 'ml'}
-                          </span>
+                  return (
+                    <div
+                      key={product.id}
+                      className={`product-card ${isExpanded ? 'expanded' : ''} ${canExpand ? 'expandable' : ''} ${photo ? '' : 'no-photo'}`}
+                      style={{ '--d': `${Math.min(i, 6) * 40}ms` }}
+                      onClick={() => toggleProduct(product.id)}
+                      role={canExpand ? 'button' : undefined}
+                      tabIndex={canExpand ? 0 : undefined}
+                      aria-expanded={canExpand ? isExpanded : undefined}
+                      onKeyDown={(e) => { if (canExpand && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggleProduct(product.id); } }}
+                    >
+                      {photo && (
+                        <div className="product-img-wrapper">
+                          <FadeImg src={`photos/produse/${photo}`} alt={product.nume} eager={i < 2} />
+                          {weight && <span className="weight-chip">{weight}</span>}
+                        </div>
+                      )}
+                      <div className="product-info">
+                        <div className="product-title-price">
+                          <h3>{product.nume}</h3>
+                          <span className="price">{Math.floor(product.pret)} <small>lei</small></span>
+                        </div>
+
+                        {(product.ingrediente || (!photo && weight)) && (
+                          <p className="ingredients">
+                            {!photo && weight && <span className="weight-inline">{weight}</span>}
+                            {product.ingrediente}
+                          </p>
+                        )}
+
+                        {canExpand && (
+                          <div className={`nutritional-wrap ${isExpanded ? 'open' : ''}`}>
+                            <div className="nutritional-info">
+                              <strong>Declarație nutrițională / 100 g</strong>
+                              {nutrition.length > 0 ? (
+                                <dl className="nutrition-grid">
+                                  {nutrition.map(([k, v]) => (
+                                    <div key={k}>
+                                      <dt>{k}</dt>
+                                      <dd>{v}</dd>
+                                    </div>
+                                  ))}
+                                </dl>
+                              ) : (
+                                <p className="nutrition-empty">Informație indisponibilă</p>
+                              )}
+                              {product.alergeni && (
+                                <p className="allergens">
+                                  <b>!</b> Alergeni: {product.alergeni}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {canExpand && (
+                          <div className="expand-arrow">
+                            <span>{isExpanded ? 'Ascunde' : 'Valori nutriționale'}</span>
+                            <Chevron open={isExpanded} />
+                          </div>
                         )}
                       </div>
-                    )}
-                    <div className="product-info">
-                      <div className="product-title-price">
-                        <h3>{product.nume}</h3>
-                        <span className="price">{Math.floor(product.pret)} <small>lei</small></span>
-                      </div>
-
-                      {product.ingrediente && (
-                        <p className="ingredients">{product.ingrediente}</p>
-                      )}
-
-                      {!product.imagine_url && product.gramaj > 0 && (
-                        <span className="weight">
-                          {product.gramaj} {selectedCategory.tip === 'Mancare' ? 'g' : 'ml'}
-                        </span>
-                      )}
-
-                      {canExpand && (
-                        <div className={`nutritional-wrap ${isExpanded ? 'open' : ''}`}>
-                          <div className="nutritional-info">
-                            <strong>Declarație nutrițională / 100 g</strong>
-                            {nutrition.length > 0 ? (
-                              <dl className="nutrition-grid">
-                                {nutrition.map(([k, v]) => (
-                                  <div key={k}>
-                                    <dt>{k}</dt>
-                                    <dd>{v}</dd>
-                                  </div>
-                                ))}
-                              </dl>
-                            ) : (
-                              <p className="nutrition-empty">Informație indisponibilă</p>
-                            )}
-                            {product.alergeni && (
-                              <p className="allergens">
-                                <b>!</b> Alergeni: {product.alergeni}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {canExpand && (
-                        <div className="expand-arrow">
-                          <span>{isExpanded ? 'Ascunde' : 'Valori nutriționale'}</span>
-                          <Chevron open={isExpanded} />
-                        </div>
-                      )}
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
+
       </main>
     </div>
   );
